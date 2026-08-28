@@ -31,9 +31,15 @@
     "lib/invariant.js",
     "lib/types/**/*.d.ts",
     "src",
+    "cordis.patch.yml",
     "README.md",
     "README.zh.md"
   ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
   "scripts": {
     "build": "node -e \"require('node:fs').rmSync('lib',{recursive:true,force:true})\" && tsc -p tsconfig.build.json && tsdown",
     "prepublishOnly": "pnpm build",
