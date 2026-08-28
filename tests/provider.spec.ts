@@ -112,7 +112,7 @@ describe('pass-through', () => {
 })
 
 describe('describe', () => {
-  it('reports a pool configured, read-only, sourced from the first configured member, with a per-member topology', async () => {
+  it('reports a pool configured, read-only, sourced from the first configured member', async () => {
     const dir = await seededHome({ QWEN_API_KEY_2: 'key-2' })
     const ctx = await boot(dir, {
       QWEN_API_KEY: { policy: 'round_robin', members: ['QWEN_API_KEY_1', 'QWEN_API_KEY_2'] },
@@ -121,17 +121,10 @@ describe('describe', () => {
       configured: true,
       source: 'file',
       writable: false,
-      pool: {
-        policy: 'round_robin',
-        members: [
-          { ref: 'QWEN_API_KEY_1', configured: false },
-          { ref: 'QWEN_API_KEY_2', configured: true, source: 'file' },
-        ],
-      },
     })
   })
 
-  it('reports a pool unconfigured when no member is stored, still carrying the member topology', async () => {
+  it('reports a pool unconfigured when no member is stored', async () => {
     const dir = await seededHome({})
     const ctx = await boot(dir, {
       QWEN_API_KEY: { policy: 'round_robin', members: ['QWEN_API_KEY_1'] },
@@ -139,11 +132,10 @@ describe('describe', () => {
     expect(await ctx.credentials.describe(POOL)).toEqual({
       configured: false,
       writable: false,
-      pool: { policy: 'round_robin', members: [{ ref: 'QWEN_API_KEY_1', configured: false }] },
     })
   })
 
-  it('carries an env-sourced member through as read-only, with the member source in the topology', async () => {
+  it('carries an env-sourced member through as read-only', async () => {
     const dir = await seededHome({})
     const ctx = await boot(dir, {
       QWEN_API_KEY: { policy: 'round_robin', members: ['QWEN_API_KEY_1'] },
@@ -153,42 +145,35 @@ describe('describe', () => {
       configured: true,
       source: 'env',
       writable: false,
-      pool: { policy: 'round_robin', members: [{ ref: 'QWEN_API_KEY_1', configured: true, source: 'env' }] },
     })
   })
 
-  it('preserves the declared member order and manual policy label in the topology', async () => {
+  it('reports the manual-policy active member source as the aggregate', async () => {
     const dir = await seededHome({ QWEN_API_KEY_5: 'key-5' })
     const ctx = await boot(dir, {
       QWEN_API_KEY: { policy: 'manual', members: ['QWEN_API_KEY_5', 'QWEN_API_KEY_1'], active: 'QWEN_API_KEY_5' },
     })
-    const info = await ctx.credentials.describe(POOL)
-    expect(info.pool).toEqual({
-      policy: 'manual',
-      members: [
-        { ref: 'QWEN_API_KEY_5', configured: true, source: 'file' },
-        { ref: 'QWEN_API_KEY_1', configured: false },
-      ],
+    expect(await ctx.credentials.describe(POOL)).toEqual({
+      configured: true,
+      source: 'file',
+      writable: false,
     })
   })
 
-  it('never places a member value in the topology', async () => {
+  it('never places a member value in the description', async () => {
     const dir = await seededHome(eightMembers())
     const members = Array.from({ length: 8 }, (_unused, i) => `QWEN_API_KEY_${i + 1}`)
     const ctx = await boot(dir, { QWEN_API_KEY: { policy: 'round_robin', members } })
     const info = await ctx.credentials.describe(POOL)
     const serialized = JSON.stringify(info)
     for (let i = 1; i <= 8; i += 1) expect(serialized).not.toContain(`key-${i}`)
-    const [first] = info.pool!.members
-    expect(Object.keys(first!).sort()).toEqual(['configured', 'ref', 'source'])
   })
 
-  it('describes a non-pool reference straight through, with no pool block', async () => {
+  it('describes a non-pool reference straight through', async () => {
     const dir = await seededHome({ DEEPSEEK_API_KEY: 'ds-key' })
     const ctx = await boot(dir, { QWEN_API_KEY: { policy: 'round_robin', members: ['QWEN_API_KEY_1'] } })
     const info = await ctx.credentials.describe(PLAIN)
     expect(info).toEqual({ configured: true, source: 'file', writable: true })
-    expect(info.pool).toBeUndefined()
   })
 })
 
