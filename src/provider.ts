@@ -23,6 +23,7 @@ import type { CredentialInfo, CredentialRef, ResolvedCredential } from '@deepsee
 import { Config, resolvePools } from './config.ts'
 import type { PoolSpec } from './types.ts'
 import { pickMember } from './pick.ts'
+import { installSettings, getDisabledMembers } from './host/settings.ts'
 
 /**
  * Rotating credentials provider. Subclasses the file-backed provider and
@@ -44,9 +45,8 @@ export class KeypoolCredentialProvider extends LocalCredentialProvider {
 
   constructor(ctx: Context, config: Config) {
     super(ctx, config)
-    // Brand the declared pools into runtime specs once, at load: a malformed
-    // reference fails here rather than at first resolution.
     this.pools = resolvePools(config.pools)
+    installSettings(ctx, this.pools, ref => super.resolve(ref as CredentialRef).then(r => r?.value))
   }
 
   /**
@@ -68,7 +68,8 @@ export class KeypoolCredentialProvider extends LocalCredentialProvider {
    */
   private nextMember(ref: CredentialRef, spec: PoolSpec): CredentialRef {
     const cursor = this.cursors.get(ref) ?? 0
-    const { ref: member, nextCursor } = pickMember(spec, cursor)
+    const disabled = getDisabledMembers()
+    const { ref: member, nextCursor } = pickMember(spec, cursor, disabled)
     this.cursors.set(ref, nextCursor)
     return member
   }

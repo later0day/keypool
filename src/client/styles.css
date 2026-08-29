@@ -1,0 +1,110 @@
+/* Pool rows: one pool per card-style block inside the body */
+.lc-settings-pool {
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  background: var(--dsw-alias-bg-layer-2);
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 8px;
+}
+
+.lc-settings-pool:last-child {
+  margin-bottom: 0;
+}
+
+.lc-settings-pool-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dsw-alias-label-primary);
+  margin-bottom: 6px;
+}
+
+/* Key-value rows inside a pool block */
+.lc-settings-kv {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 3px 0;
+}
+
+.lc-settings-kv-label {
+  flex: none;
+  min-width: 60px;
+  font-size: 12px;
+  color: var(--dsw-alias-label-secondary);
+}
+
+.lc-settings-kv-value {
+  font-size: 13px;
+  color: var(--dsw-alias-label-primary);
+}
+
+/* Member rows: key name + toggle */
+.lc-settings-members {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.lc-settings-member-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lc-settings-member-name {
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--dsw-alias-bg-layer-1);
+  border: 1px solid var(--dsw-alias-border-l1);
+  color: var(--dsw-alias-label-secondary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lc-settings-member-name-disabled {
+  opacity: 0.45;
+  text-decoration: line-through;
+}
+
+/* Toggle button: pill-shaped, compact */
+.lc-settings-toggle {
+  flex: none;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--dsw-alias-label-secondary);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.lc-settings-toggle:hover {
+  border-color: var(--dsw-alias-label-dimmed);
+  color: var(--dsw-alias-label-primary);
+}
+
+.lc-settings-toggle-off {
+  background: var(--dsw-alias-bg-layer-1);
+  color: var(--dsw-alias-label-tertiary);
+}
+
+.lc-settings-toggle-off:hover {
+  background: var(--dsw-alias-state-error-primary);
+  border-color: var(--dsw-alias-state-error-primary);
+  color: #fff;
+}
+
+.lc-settings-empty {
+  font-size: 13px;
+  color: var(--dsw-alias-label-tertiary);
+  padding: 8px 0;
+}

@@ -25,25 +25,32 @@ export interface Pick {
  * - `manual` returns the pinned {@link PoolSpec.active} member, or the first
  *   member when none is pinned or the pin is not a member, and never advances.
  *
+ * When `disabled` is provided, disabled members are excluded from selection.
+ * If all members are disabled the first member is returned regardless.
+ *
  * The cursor is only meaningful for `round_robin`; `manual` returns it
  * unchanged so a policy switch at runtime does not lose the round-robin
  * position.
  * @param spec - the pool to select from; `members` is non-empty per its schema.
  * @param cursor - the pool's current cursor; any non-negative integer.
+ * @param disabled - member references to exclude from selection.
  * @returns the chosen member and the next cursor.
  */
-export function pickMember(spec: PoolSpec, cursor: number): Pick {
+export function pickMember(spec: PoolSpec, cursor: number, disabled?: ReadonlySet<string>): Pick {
+  const enabled = disabled !== undefined && disabled.size > 0
+    ? spec.members.filter(m => !disabled.has(m))
+    : spec.members
+  const effective = enabled.length > 0 ? enabled : spec.members
   const policy: Policy = spec.policy
   switch (policy) {
     case 'round_robin': {
-      // members is non-empty per schema, so the modulo index is always in range.
-      const index = cursor % spec.members.length
-      return { ref: spec.members[index] as CredentialRef, nextCursor: cursor + 1 }
+      const index = cursor % effective.length
+      return { ref: effective[index] as CredentialRef, nextCursor: cursor + 1 }
     }
     case 'manual': {
-      const pinned = spec.active !== undefined && spec.members.includes(spec.active)
+      const pinned = spec.active !== undefined && effective.includes(spec.active)
         ? spec.active
-        : spec.members[0] as CredentialRef
+        : effective[0] as CredentialRef
       return { ref: pinned, nextCursor: cursor }
     }
     default:

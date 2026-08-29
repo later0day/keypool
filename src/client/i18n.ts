@@ -1,0 +1,31 @@
+export const DICT_ZH = {
+  'settings.title': 'Keypool',
+  'settings.desc': 'API Key 轮询池配置',
+  'settings.expand': '展开',
+  'settings.collapse': '收起',
+  'settings.readOnly': '成员 Key 名称由部署配置管理，启用/禁用状态可在此切换',
+  'pool.name': '池名称',
+  'pool.policy': '策略',
+  'pool.members': '成员 Key',
+  'pool.memberCount': '成员数量',
+  'pool.enable': '启用',
+  'pool.disable': '禁用',
+  'policy.round_robin': '轮询',
+  'policy.manual': '手动',
+}
+
+export const DICT_EN = {
+  'settings.title': 'Keypool',
+  'settings.desc': 'API Key rotation pool configuration',
+  'settings.expand': 'Expand',
+  'settings.collapse': 'Collapse',
+  'settings.readOnly': 'Member key names are managed by deployment config; enable/disable state can be toggled here',
+  'pool.name': 'Pool Name',
+  'pool.policy': 'Policy',
+  'pool.members': 'Member Keys',
+  'pool.memberCount': 'Member Count',
+  'pool.enable': 'Enable',
+  'pool.disable': 'Disable',
+  'policy.round_robin': 'Round Robin',
+  'policy.manual': 'Manual',
+}
