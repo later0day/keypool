@@ -13,7 +13,6 @@
  */
 
 import type { Context } from '@deepseek-ai/cordis'
-import { settingsNamespace } from '@deepseek-ai/dsh-settings'
 import type { SettingsScope } from '@deepseek-ai/dsh-settings'
 import z from '@deepseek-ai/schemastery'
 import type { PoolSpec } from '../types.ts'
@@ -65,7 +64,7 @@ export function installSettings(
   resolveMember?: (ref: string) => Promise<string | undefined>,
 ): void {
   ctx.inject(['settings'], (sctx) => {
-    scope = sctx.settings.register(settingsNamespace(SETTINGS_NAMESPACE), SettingsSchema)
+    scope = sctx.settings.register(SETTINGS_NAMESPACE, SettingsSchema)
     const poolList = Object.entries(pools).map(([name, spec]) => ({
       name,
       policy: spec.policy,
