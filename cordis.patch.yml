@@ -7,13 +7,23 @@
 #
 # keypool subclasses the file-backed provider, so path/watch and every non-pool
 # reference behave exactly as @deepseek-ai/dsh-credentials-local; only pool
-# references rotate. The pool rotates QWEN_API_KEY over eight interchangeable
-# member keys stored in $DSH_HOME/.credentials.yaml (QWEN_API_KEY_1..8) under
-# round_robin; each credential resolution hands the next member to the request.
+# references rotate. The pool rotates QWEN_API_KEY over six interchangeable
+# member keys stored in $DSH_HOME/.credentials.yaml under round_robin; each
+# credential resolution hands the next member to the request. KEY_6 (401 dead)
+# and KEY_8 (dup of KEY_1) are permanently excluded, not just disabled, so a
+# round-robin pass never lands on an unconfigured member.
+#
+# The inserted row below carries an explicit `id` (not just `name`) so a later
+# id-targeted cordis.patch.yml override can actually match it — applyEntryPatches
+# only indexes entries that already have an `id`; an id-less insert is
+# unaddressable by any subsequent patch (confirmed by a silently-dropped
+# profile-level override that tried to target this row by package name before
+# an explicit id existed here).
 - id: credentials
   disabled: true
 - insert:
-    - name: '@deepseek-ai/dsh-credentials-keypool'
+    - id: '@deepseek-ai/dsh-credentials-keypool'
+      name: '@deepseek-ai/dsh-credentials-keypool'
       config:
         pools:
           QWEN_API_KEY:
@@ -24,6 +34,4 @@
               - QWEN_API_KEY_3
               - QWEN_API_KEY_4
               - QWEN_API_KEY_5
-              - QWEN_API_KEY_6
               - QWEN_API_KEY_7
-              - QWEN_API_KEY_8
