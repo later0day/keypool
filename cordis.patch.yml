@@ -7,11 +7,17 @@
 #
 # keypool subclasses the file-backed provider, so path/watch and every non-pool
 # reference behave exactly as @deepseek-ai/dsh-credentials-local; only pool
-# references rotate. The pool rotates QWEN_API_KEY over six interchangeable
+# references rotate. The pool rotates QWEN_API_KEY over five interchangeable
 # member keys stored in $DSH_HOME/.credentials.yaml under round_robin; each
 # credential resolution hands the next member to the request. KEY_6 (401 dead)
 # and KEY_8 (dup of KEY_1) are permanently excluded, not just disabled, so a
-# round-robin pass never lands on an unconfigured member.
+# round-robin pass never lands on an unconfigured member. KEY_3 was pulled on
+# 2026-09-12 after live-testing every member directly against DashScope (curl
+# the chat/completions endpoint with each key) surfaced a real 401
+# invalid_api_key on it — it isn't a stale/unconfigured slot like _6/_8, the
+# key itself has been revoked/expired upstream since this pool was last
+# trimmed. Trusting old "known-bad" comments without re-testing every member
+# live is what let this slip through the previous fix; don't repeat that.
 #
 # The inserted row below carries an explicit `id` (not just `name`) so a later
 # id-targeted cordis.patch.yml override can actually match it — applyEntryPatches
@@ -31,7 +37,6 @@
             members:
               - QWEN_API_KEY_1
               - QWEN_API_KEY_2
-              - QWEN_API_KEY_3
               - QWEN_API_KEY_4
               - QWEN_API_KEY_5
               - QWEN_API_KEY_7
