@@ -23,7 +23,7 @@ import type { CredentialInfo, CredentialRef, ResolvedCredential } from '@deepsee
 import { Config, resolvePools } from './config.ts'
 import type { PoolSpec } from './types.ts'
 import { pickMember } from './pick.ts'
-import { installSettings, getDisabledMembers } from './host/settings.ts'
+import { getDisabledMembers } from './host/settings.ts'
 
 /**
  * Rotating credentials provider. Subclasses the file-backed provider and
@@ -36,6 +36,8 @@ export class KeypoolCredentialProvider extends LocalCredentialProvider {
 
   /** Declared pools keyed by pool reference; empty leaves the provider inert. */
   private readonly pools: Record<string, PoolSpec>
+  /** The plugin's resolved Config, read for the volatile `disabled` field at each resolution. */
+  private readonly config: Config
   /**
    * Per-pool round-robin cursor, in memory only. It starts at zero every boot:
    * which member a fresh process begins on carries no meaning, only that
@@ -46,7 +48,17 @@ export class KeypoolCredentialProvider extends LocalCredentialProvider {
   constructor(ctx: Context, config: Config) {
     super(ctx, config)
     this.pools = resolvePools(config.pools)
-    installSettings(ctx, this.pools, ref => super.resolve(ref as CredentialRef).then(r => r?.value))
+    this.config = config
+    ctx.inject(['settings'], (child) => {
+      child.effect(() => child.settings.configure({ auto: false }, ctx.fiber))
+      const poolInfoValue = Object.entries(this.pools).map(([name, spec]) => ({
+        name,
+        policy: spec.policy,
+        memberCount: spec.members.length,
+        members: spec.members.map(m => String(m)),
+      }))
+      void child.settings.update('@deepseek-ai/dsh-credentials-keypool', { poolInfo: poolInfoValue }).catch(() => {})
+    })
   }
 
   /**
@@ -68,7 +80,7 @@ export class KeypoolCredentialProvider extends LocalCredentialProvider {
    */
   private nextMember(ref: CredentialRef, spec: PoolSpec): CredentialRef {
     const cursor = this.cursors.get(ref) ?? 0
-    const disabled = getDisabledMembers()
+    const disabled = getDisabledMembers(this.config)
     const { ref: member, nextCursor } = pickMember(spec, cursor, disabled)
     this.cursors.set(ref, nextCursor)
     return member

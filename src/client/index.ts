@@ -1,20 +1,22 @@
 /**
  * keypool — Client half (installed package bundle entry).
  *
- * Registers a read-only settings card in Settings → Plugins → Plugin
- * configuration that displays the pool configuration snapshot written by
- * the Host half at startup.
+ * Registers a settings card in Settings → Plugins → Plugin configuration
+ * that displays the pool configuration snapshot and toggles member keys
+ * on/off through `ctx.configForms`. The card renders while the Host serves
+ * the `@deepseek-ai/dsh-credentials-keypool` namespace.
  */
 
 import { DICT_EN, DICT_ZH } from './i18n'
 import { makeSettingsCard } from './components/settingsCard'
-import { createKeypoolSettings, type SettingsScopeBinderFace } from './settings'
+import { createKeypoolSettings } from './settings'
 
 import './styles.css'
 
 import { h } from './react'
 
-const NS = 'keypool'
+/** Profile entry id of the keypool credentials provider. */
+const KEYPOOL_ENTRY = '@deepseek-ai/dsh-credentials-keypool'
 
 interface ClientCtx {
   effect: (fn: () => (() => void) | void, label?: string) => void
@@ -26,26 +28,26 @@ interface ClientCtx {
     inject: (name: string, factory: () => { dispose?: () => void }) => void
     register: (options: Record<string, unknown>, component: (props: Record<string, unknown>) => unknown) => unknown
   }
-  inject: (deps: string[], callback: (ctx: Record<string, unknown>) => void) => void
+  configForms: {
+    get: (entryId: string) => { getSnapshot(): unknown; subscribe(listener: () => void): () => void; set(field: string, value: unknown): Promise<boolean> }
+    whileServed: (namespaces: readonly string[], register: (served: ReadonlySet<string>) => () => void) => () => void
+  }
 }
 
 function apply(ctx: ClientCtx): void {
   ctx.effect(() => {
-    return ctx.locale.register(NS, { zh: DICT_ZH, en: DICT_EN })
+    return ctx.locale.register(KEYPOOL_ENTRY, { zh: DICT_ZH, en: DICT_EN })
   }, 'keypool: dictionaries')
-  const t = ctx.locale.bind(NS)
+  const t = ctx.locale.bind(KEYPOOL_ENTRY)
 
-  const settings = createKeypoolSettings()
+  const form = ctx.configForms.get(KEYPOOL_ENTRY)
+  const settings = createKeypoolSettings(form)
   const SettingsCard = makeSettingsCard(t)
 
-  ctx.inject(['settingsScope'], (raw) => {
-    const c = raw as ClientCtx & { settingsScope?: SettingsScopeBinderFace }
-    const binder = c.settingsScope
-    if (binder === undefined) return
-    ctx.effect(() => settings.attach(binder.bind({ namespace: NS })), 'keypool: settings scope')
-    ctx.slots.inject('settings.plugin.item', () => {
+  ctx.effect(() => ctx.configForms.whileServed([KEYPOOL_ENTRY], () => {
+    return ctx.slots.inject('plugins.item', () => {
       return ctx.slots.register(
-        { name: 'settings.plugin.item', key: NS, locale: NS,
+        { name: 'plugins.item', id: 'keypool', order: 20, label: () => t('settings.title'), locale: KEYPOOL_ENTRY,
           inject: () => ({
             hooks: { keypoolSettings: settings.store },
             toggleMember: (member: string) => { settings.toggleMember(member) },
@@ -53,11 +55,11 @@ function apply(ctx: ClientCtx): void {
         props => h(SettingsCard, props as Record<string, unknown>),
       )
     })
-  })
+  }), 'keypool: settings card')
 }
 
 module.exports = {
   name: 'keypool',
-  inject: ['slots', 'locale'],
+  inject: ['slots', 'locale', 'configForms'],
   apply,
 }

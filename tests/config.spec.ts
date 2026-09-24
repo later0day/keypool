@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest'
+import { isVolatile } from '@deepseek-ai/cosmokit'
 import { credentialRef } from '@deepseek-ai/dsh-credentials'
 import { Config, resolvePools } from '../src/config.ts'
 
 describe('Config', () => {
   it('defaults pools to empty and the file fields to the base defaults', () => {
     const parsed = new Config({ path: '/tmp/creds.yaml' })
-    expect(parsed).toEqual({ path: '/tmp/creds.yaml', watch: true, debounceMs: 100, pools: {} })
+    expect({ ...parsed, disabled: isVolatile(parsed.disabled) ? parsed.disabled.get() : parsed.disabled })
+      .toEqual({ path: '/tmp/creds.yaml', watch: true, debounceMs: 100, pools: {}, disabled: [] })
   })
 
   it('defaults a pool policy to round_robin', () => {

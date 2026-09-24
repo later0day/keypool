@@ -13,6 +13,7 @@
  */
 
 import z from '@deepseek-ai/schemastery'
+import type { Volatile } from '@deepseek-ai/cordis'
 import { credentialRef } from '@deepseek-ai/dsh-credentials'
 import type { Policy, PoolSpec } from './types.ts'
 
@@ -32,6 +33,18 @@ export interface PoolConfig {
   active?: string
 }
 
+/** Pool display metadata: name, policy, and member references for the settings card. */
+export interface PoolInfo {
+  /** Pool reference name an adapter asks for. */
+  name: string
+  /** Rotation policy applied on each resolution. */
+  policy: Policy
+  /** Total member count in declaration order. */
+  memberCount: number
+  /** Member reference names rotated over. */
+  members: string[]
+}
+
 /** One pool's declarative schema: policy, non-empty members, optional pinned member. */
 const poolConfig: z<PoolConfig> = z.object({
   policy: z.union(POLICIES).default(DEFAULT_POLICY),
@@ -39,11 +52,21 @@ const poolConfig: z<PoolConfig> = z.object({
   active: z.string().required(false),
 })
 
+/** Display schema for one pool as the settings card renders it. */
+const poolInfo: z<PoolInfo> = z.object({
+  name: z.string(),
+  policy: z.union(POLICIES).default(DEFAULT_POLICY),
+  memberCount: z.number().default(0),
+  members: z.array(z.string()).default([]),
+})
+
 /**
  * Plugin config: the file-backed document fields plus the pool declarations.
  * A pool reference absent from `pools` resolves straight through to the
  * underlying provider, so enabling this plugin with an empty map is a no-op
- * over the file provider.
+ * over the file provider. The `disabled` volatile field stores member
+ * references the user has toggled off in the Settings card; the new
+ * SettingsForms API auto-generates the toggle UI from it.
  */
 export interface Config {
   /** Credentials document path; defaults to `.credentials.yaml` under the harness home. */
@@ -56,15 +79,21 @@ export interface Config {
   debounceMs?: number
   /** Pool declarations keyed by the pool reference the adapter asks for. */
   pools?: Record<string, PoolConfig>
+  /** Display metadata for the settings card; written by the Host from resolved pools. */
+  poolInfo?: Volatile<PoolInfo[]>
+  /** Member references the user has disabled from rotation; managed through the Settings card. */
+  disabled?: Volatile<string[]>
 }
 
-/** Config schema; `pools` defaults to empty so the plugin is inert until declared. */
+/** Config schema; `pools` and `disabled` default to empty so the plugin is inert until declared. */
 export const Config: z<Config> = z.object({
   path: z.string(),
   dshHome: z.string(),
   watch: z.boolean().default(true),
   debounceMs: z.number().min(0).default(100),
   pools: z.dict(poolConfig).default({}),
+  poolInfo: z.array(poolInfo).default([]).volatile(),
+  disabled: z.array(z.string()).default([]).volatile(),
 })
 
 /**
