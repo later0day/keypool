@@ -27,9 +27,6 @@ importers:
       '@deepseek-ai/dsh-credentials-local':
         specifier: link:/Users/later0day/Desktop/DSH/deepseek-harness/packages/credentials/credentials-local
         version: link:../../deepseek-harness/packages/credentials/credentials-local
-      '@deepseek-ai/dsh-invariants':
-        specifier: link:/Users/later0day/Desktop/DSH/deepseek-harness/packages/runtime-diagnostics/invariants
-        version: link:../../deepseek-harness/packages/runtime-diagnostics/invariants
       '@deepseek-ai/dsh-settings':
         specifier: link:/Users/later0day/Desktop/DSH/deepseek-harness/packages/settings/settings
         version: link:../../deepseek-harness/packages/settings/settings

@@ -83,12 +83,11 @@ function cssChannels(id: string) {
 }
 
 export default defineConfig([
-  // Host half: Node ESM bundle for the plugin entry and invariant companion.
+  // Host half: Node ESM bundle for the plugin entry.
   {
     name: pkg.name,
     entry: {
       index: 'src/index.ts',
-      invariant: 'src/invariant.ts',
     },
     outDir: 'lib',
     format: ['esm'],
