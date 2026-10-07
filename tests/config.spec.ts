@@ -6,8 +6,12 @@ import { Config, resolvePools } from '../src/config.ts'
 describe('Config', () => {
   it('defaults pools to empty and the file fields to the base defaults', () => {
     const parsed = new Config({ path: '/tmp/creds.yaml' })
-    expect({ ...parsed, disabled: isVolatile(parsed.disabled) ? parsed.disabled.get() : parsed.disabled })
-      .toEqual({ path: '/tmp/creds.yaml', watch: true, debounceMs: 100, pools: {}, disabled: [] })
+    expect({
+      ...parsed,
+      disabled: isVolatile(parsed.disabled) ? parsed.disabled.get() : parsed.disabled,
+      poolInfo: isVolatile(parsed.poolInfo) ? parsed.poolInfo.get() : parsed.poolInfo,
+    })
+      .toEqual({ path: '/tmp/creds.yaml', watch: true, debounceMs: 100, pools: {}, disabled: [], poolInfo: [] })
   })
 
   it('defaults a pool policy to round_robin', () => {

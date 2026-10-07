@@ -18,6 +18,9 @@
  */
 
 import type { Context } from '@deepseek-ai/cordis'
+// Type-only: brings the `@deepseek-ai/cordis` Context augmentation
+// (`settings: SettingsForms`) into scope so `ctx.settings` type-checks.
+import type {} from '@deepseek-ai/dsh-settings'
 import { LocalCredentialProvider } from '@deepseek-ai/dsh-credentials-local'
 import type { CredentialInfo, CredentialRef, ResolvedCredential } from '@deepseek-ai/dsh-credentials'
 import { Config, resolvePools } from './config.ts'
@@ -36,8 +39,8 @@ export class KeypoolCredentialProvider extends LocalCredentialProvider {
 
   /** Declared pools keyed by pool reference; empty leaves the provider inert. */
   private readonly pools: Record<string, PoolSpec>
-  /** The plugin's resolved Config, read for the volatile `disabled` field at each resolution. */
-  private readonly config: Config
+  /** The plugin's resolved Config (stored by the base constructor), read for the volatile `disabled` field at each resolution. */
+  declare config: Config
   /**
    * Per-pool round-robin cursor, in memory only. It starts at zero every boot:
    * which member a fresh process begins on carries no meaning, only that
@@ -48,7 +51,6 @@ export class KeypoolCredentialProvider extends LocalCredentialProvider {
   constructor(ctx: Context, config: Config) {
     super(ctx, config)
     this.pools = resolvePools(config.pools)
-    this.config = config
     ctx.inject(['settings'], (child) => {
       child.effect(() => child.settings.configure({ auto: false }, ctx.fiber))
       const poolInfoValue = Object.entries(this.pools).map(([name, spec]) => ({

@@ -86,7 +86,7 @@ export interface Config {
 }
 
 /** Config schema; `pools` and `disabled` default to empty so the plugin is inert until declared. */
-export const Config: z<Config> = z.object({
+export const Config = z.object({
   path: z.string(),
   dshHome: z.string(),
   watch: z.boolean().default(true),
