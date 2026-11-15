@@ -9,7 +9,9 @@
 
 import { DICT_EN, DICT_ZH } from './i18n'
 import { makeSettingsCard } from './components/settingsCard'
+import type { SettingsCardProps } from './components/settingsCard'
 import { createKeypoolSettings } from './settings'
+import type { ConfigForm } from '@deepseek-ai/dsh-client-ui-settings/client'
 
 import './styles.css'
 
@@ -25,11 +27,11 @@ interface ClientCtx {
     bind: (ns: string) => (key: string) => string
   }
   slots: {
-    inject: (name: string, factory: () => { dispose?: () => void }) => void
-    register: (options: Record<string, unknown>, component: (props: Record<string, unknown>) => unknown) => unknown
+    inject: (name: string, factory: () => () => void) => () => void
+    register: (options: Record<string, unknown>, component: (props: SettingsCardProps) => unknown) => () => void
   }
   configForms: {
-    get: (entryId: string) => { getSnapshot(): unknown; subscribe(listener: () => void): () => void; set(field: string, value: unknown): Promise<boolean> }
+    get: (entryId: string) => ConfigForm<unknown>
     whileServed: (namespaces: readonly string[], register: (served: ReadonlySet<string>) => () => void) => () => void
   }
 }
@@ -52,7 +54,7 @@ function apply(ctx: ClientCtx): void {
             hooks: { keypoolSettings: settings.store },
             toggleMember: (member: string) => { settings.toggleMember(member) },
           }) },
-        props => h(SettingsCard, props as Record<string, unknown>),
+        props => h(SettingsCard, props),
       )
     })
   }), 'keypool: settings card')

@@ -173,7 +173,7 @@ describe('describe', () => {
     const dir = await seededHome({ DEEPSEEK_API_KEY: 'ds-key' })
     const ctx = await boot(dir, { QWEN_API_KEY: { policy: 'round_robin', members: ['QWEN_API_KEY_1'] } })
     const info = await ctx.credentials.describe(PLAIN)
-    expect(info).toEqual({ configured: true, source: 'file', writable: true })
+    expect(info).toEqual({ configured: true, source: 'file', writable: true, masked: '••••••' })
   })
 })
 
